@@ -56,3 +56,10 @@ class Answer(models.Model):
     choice_answer = models.CharField(max_length=200, blank=True, null=True)
     # multi_choice_answer = models.
 
+class Choice(models.Model):
+    name = models.TextField()
+    question = models.ForeignKey(
+        Question,
+        on_delete=models.CASCADE,
+        related_name="choices"
+    )    
