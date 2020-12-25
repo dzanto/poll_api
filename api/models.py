@@ -33,28 +33,13 @@ class Question(models.Model):
         Poll, blank=True, on_delete=models.CASCADE,
         related_name="questions"
     )
-    first_choice = models.TextField(blank=True, null=True)
-    second_choice = models.TextField(blank=True, null=True)
-    third_choice = models.TextField(blank=True, null=True)
-    true_choice = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.text
 
 
-class Answer(models.Model):
-    author = models.TextField(default='admin')
-    question = models.ForeignKey(
-        Question,
-        on_delete=models.CASCADE,
-        related_name="answers"
-    )
-    first_answer = models.TextField(blank=True, null=True)
-    second_answer = models.TextField(blank=True, null=True)
-    third_answer = models.TextField(blank=True, null=True)
-    text_answer = models.TextField(blank=True, null=True)
-    choice_answer = models.CharField(max_length=200, blank=True, null=True)
-    # multi_choice_answer = models.
+# multi_choice_answer = models.
+
 
 class Choice(models.Model):
     name = models.TextField()
@@ -62,4 +47,24 @@ class Choice(models.Model):
         Question,
         on_delete=models.CASCADE,
         related_name="choices"
-    )    
+    )
+
+    def __str__(self):
+        return self.name
+
+
+class Answer(models.Model):
+    author = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    question = models.ForeignKey(
+        Question,
+        on_delete=models.CASCADE,
+        related_name="answers"
+    )
+    many_choice = models.ManyToManyField(Choice, null=True)
+    one_choice = models.ForeignKey(
+        Choice,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name="answers_one_choice"
+    )
+    self_text = models.TextField(null=True)
