@@ -7,6 +7,7 @@ from api.serializers import (
     AnswerOneChoiceSerializer, AnswerMultipleChoiceSerializer, ChoiceSerializer,
 )
 from datetime import datetime
+from django.db.models import Q
 
 
 class PollViewSet(viewsets.ModelViewSet):
@@ -30,7 +31,7 @@ class UserPollListViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 class UserIdPollListViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
     def get_queryset(self):
-        queryset = Poll.objects.filter(questions__answers__author__id=self.kwargs['id'])
+        queryset = Poll.objects.exclude(~Q(questions__answers__author__id=self.kwargs['id']))
         return queryset
     serializer_class = UserPollSerializer
 
@@ -83,7 +84,7 @@ class AnswerCreateViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         serializer.save(author=self.request.user, question=question)
 
 
-class ChoiceCreateViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
+class ChoiceListCreateViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
     queryset = Choice.objects.all()
     serializer_class = ChoiceSerializer
 
@@ -94,3 +95,7 @@ class ChoiceCreateViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewse
             poll__id=self.kwargs['id'],
         )
         serializer.save(question=question)
+
+    def get_queryset(self):
+        question = get_object_or_404(Question, id=self.kwargs['question_pk'])
+        return question.choices.all()

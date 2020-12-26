@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from api.models import Poll, Question, Answer, Choice
-
+from django.db.models import Q
 
 # опросы
 class PollSerializer(serializers.ModelSerializer):
@@ -12,7 +12,7 @@ class PollSerializer(serializers.ModelSerializer):
 # варианты ответов
 class ChoiceSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = '__all__'
+        fields = ['id', 'name']
         model = Choice
 
 
@@ -29,14 +29,29 @@ class AnswerSerializer(serializers.ModelSerializer):
         fields = '__all__'
         model = Answer
 
+    def get_queryset(self):
+        author_id = self.context.get('request').parser_context['kwargs']['id']
+        request = self.context.get('request', None)
+        queryset = super().get_queryset()
+        print(author_id)
+        if not request or not queryset:
+            return None
+        return queryset.exclude(~Q(author__id=author_id))
+
 
 # вопросы с ответами пользователей
 class QuestionListSerializer(serializers.ModelSerializer):
-    answers = AnswerSerializer(read_only=True, many=True)
+    answers = serializers.SerializerMethodField('get_answers')
 
     class Meta:
         fields = ['text', 'answers']
         model = Question
+
+    def get_answers(self, question):
+        author_id = self.context.get('request').parser_context['kwargs']['id']
+        answers = Answer.objects.filter(Q(question=question) & Q(author__id=author_id))
+        serializer = AnswerSerializer(instance=answers, many=True)
+        return serializer.data
 
 
 # опросы с вопросами и ответами пользователей
@@ -57,13 +72,13 @@ class AnswerOneTextSerializer(serializers.ModelSerializer):
 
 class UserFilteredPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
     def get_queryset(self):
+        question_id = self.context.get('request').parser_context['kwargs']['question_pk']
         request = self.context.get('request', None)
         queryset = super(UserFilteredPrimaryKeyRelatedField,
                          self).get_queryset()
         if not request or not queryset:
             return None
-        print(request)
-        return queryset.filter(question_id=2)
+        return queryset.filter(question_id=question_id)
 
 
 # ответ выбором одного варианта

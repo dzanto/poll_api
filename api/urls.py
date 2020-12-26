@@ -15,7 +15,7 @@ router.register('polls', views.PollViewSet)
 router.register('active_polls', views.ActivePollListViewSet)
 
 # список опросов с детализацией
-router.register('user_polls', views.UserPollListViewSet, basename='list_user_polls')
+# router.register('user_polls', views.UserPollListViewSet, basename='list_user_polls')
 
 # опросы пользователя
 router.register(
@@ -34,9 +34,11 @@ router.register(
     'polls/(?P<id>\d+)/questions/(?P<question_pk>\d+)/answers',
     views.AnswerCreateViewSet, basename='perform_create_answers'
 )
+
+# варианты ответа для вопроса
 router.register(
     'polls/(?P<id>\d+)/questions/(?P<question_pk>\d+)/choices',
-    views.ChoiceCreateViewSet, basename='perform_create_choice'
+    views.ChoiceListCreateViewSet, basename='perform_create_choice'
 )
 
 urlpatterns = [
