@@ -42,7 +42,7 @@ class Question(models.Model):
 
 
 class Choice(models.Model):
-    name = models.TextField()
+    name = models.TextField(verbose_name='Вариант ответа')
     question = models.ForeignKey(
         Question,
         on_delete=models.CASCADE,
