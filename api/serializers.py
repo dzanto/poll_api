@@ -2,6 +2,7 @@ from rest_framework import serializers
 from api.models import Poll, Question, Answer, Choice
 from django.db.models import Q
 
+
 # опросы
 class PollSerializer(serializers.ModelSerializer):
     class Meta:
@@ -29,15 +30,6 @@ class AnswerSerializer(serializers.ModelSerializer):
         fields = '__all__'
         model = Answer
 
-    def get_queryset(self):
-        author_id = self.context.get('request').parser_context['kwargs']['id']
-        request = self.context.get('request', None)
-        queryset = super().get_queryset()
-        print(author_id)
-        if not request or not queryset:
-            return None
-        return queryset.exclude(~Q(author__id=author_id))
-
 
 # вопросы с ответами пользователей
 class QuestionListSerializer(serializers.ModelSerializer):
@@ -48,8 +40,10 @@ class QuestionListSerializer(serializers.ModelSerializer):
         model = Question
 
     def get_answers(self, question):
-        author_id = self.context.get('request').parser_context['kwargs']['id']
-        answers = Answer.objects.filter(Q(question=question) & Q(author__id=author_id))
+        # author_id = self.context.get('request').parser_context['kwargs']['id']
+        author_id = self.context.get('request').user.id
+        answers = Answer.objects.filter(
+            Q(question=question) & Q(author__id=author_id))
         serializer = AnswerSerializer(instance=answers, many=True)
         return serializer.data
 
@@ -72,7 +66,8 @@ class AnswerOneTextSerializer(serializers.ModelSerializer):
 
 class UserFilteredPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
     def get_queryset(self):
-        question_id = self.context.get('request').parser_context['kwargs']['question_pk']
+        question_id = self.context.get('request').parser_context['kwargs'][
+            'question_pk']
         request = self.context.get('request', None)
         queryset = super(UserFilteredPrimaryKeyRelatedField,
                          self).get_queryset()
@@ -103,6 +98,3 @@ class AnswerMultipleChoiceSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ['many_choice']
         model = Answer
-
-
-
